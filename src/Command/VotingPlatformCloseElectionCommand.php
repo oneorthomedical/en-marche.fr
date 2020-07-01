@@ -4,7 +4,13 @@ namespace App\Command;
 
 use App\Entity\VotingPlatform\CandidateGroup;
 use App\Entity\VotingPlatform\Election;
+use App\Entity\VotingPlatform\ElectionResult\CandidateGroupResult;
+use App\Entity\VotingPlatform\ElectionResult\ElectionPoolResult;
+use App\Entity\VotingPlatform\ElectionResult\ElectionResult;
+use App\Entity\VotingPlatform\ElectionResult\ElectionRoundResult;
+use App\Entity\VotingPlatform\ElectionRound;
 use App\Repository\VotingPlatform\ElectionRepository;
+use App\Repository\VotingPlatform\VoteResultRepository;
 use App\VotingPlatform\VoteResult\VoteResultAggregator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -24,6 +30,8 @@ class VotingPlatformCloseElectionCommand extends Command
     private $resultAggregator;
     /** @var EntityManagerInterface */
     private $entityManager;
+    /** @var VoteResultRepository */
+    private $voteResultRepository;
 
     protected function configure()
     {
@@ -47,7 +55,7 @@ class VotingPlatformCloseElectionCommand extends Command
 
                 $this->io->progressAdvance();
             }
-
+exit;
             $this->entityManager->clear();
         }
 
@@ -56,26 +64,33 @@ class VotingPlatformCloseElectionCommand extends Command
 
     private function closeElection(Election $election): void
     {
-        $candidatesGroupResults = $this->resultAggregator->getResults($election)['aggregated']['candidates'];
-        $currentRound = $election->getCurrentRound();
+        // 1. compute election result
+        $electionResult = $this->computeElectionResult($election);
 
-        $secondRoundPools = [];
+        // 2. close election OR start second round
 
-        foreach ($currentRound->getElectionPools() as $pool) {
-            $winners = $this->findElected($pool->getCandidateGroups(), $candidatesGroupResults);
+        $this->entityManager->persist($electionResult);
 
-            if (1 === \count($winners)) {
-                current($winners)->setElected(true);
-            } else {
-                $secondRoundPools[] = $pool;
-            }
-        }
-
-        if (empty($secondRoundPools)) {
-            $election->close();
-        } else {
-            $election->startSecondRound($secondRoundPools);
-        }
+//        $candidatesGroupResults = $this->resultAggregator->getResults($election)['aggregated']['candidates'];
+//        $currentRound = $election->getCurrentRound();
+//
+//        $secondRoundPools = [];
+//
+//        foreach ($currentRound->getElectionPools() as $pool) {
+//            $winners = $this->findElected($pool->getCandidateGroups(), $candidatesGroupResults);
+//
+//            if (1 === \count($winners)) {
+//                current($winners)->setElected(true);
+//            } else {
+//                $secondRoundPools[] = $pool;
+//            }
+//        }
+//
+//        if (empty($secondRoundPools)) {
+//            $election->close();
+//        } else {
+//            $election->startSecondRound($secondRoundPools);
+//        }
 
         $this->entityManager->flush();
     }
@@ -121,5 +136,52 @@ class VotingPlatformCloseElectionCommand extends Command
     public function setEntityManager(EntityManagerInterface $entityManager): void
     {
         $this->entityManager = $entityManager;
+    }
+
+    /** @required */
+    public function setVoteResultRepository(VoteResultRepository $voteResultRepository): void
+    {
+        $this->voteResultRepository = $voteResultRepository;
+    }
+
+    private function computeElectionResult(Election $election): ElectionResult
+    {
+        if (!$electionResult = $election->getElectionResult()) {
+            $electionResult = new ElectionResult($election);
+        }
+
+        $currentRound = $election->getCurrentRound();
+
+        if ($electionResult->alreadyFilledForRound($currentRound)) {
+            return $electionResult;
+        }
+
+        $electionRoundResult = $this->createElectionRoundResultObject($currentRound);
+        $electionResult->addElectionRoundResult($electionRoundResult);
+
+        $voteResults = $this->voteResultRepository->getResults($currentRound);
+
+        foreach ($voteResults as $voteResult) {
+            $electionRoundResult->updateFromNewVoteResult($voteResult);
+        }
+
+        $electionRoundResult->sync();
+
+        return $electionResult;
+    }
+
+    private function createElectionRoundResultObject(ElectionRound $electionRound): ElectionRoundResult
+    {
+        $electionRoundResult = new ElectionRoundResult($electionRound);
+
+        foreach ($electionRound->getElectionPools() as $pool) {
+            $electionRoundResult->addElectionPoolResult($poolResult = new ElectionPoolResult($pool));
+
+            foreach ($pool->getCandidateGroups() as $candidateGroup) {
+                $poolResult->addCandidateGroupResult(new CandidateGroupResult($candidateGroup));
+            }
+        }
+
+        return $electionRoundResult;
     }
 }

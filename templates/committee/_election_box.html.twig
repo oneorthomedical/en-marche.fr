@@ -119,10 +119,17 @@
                         {% endif %}
                     {% endif %}
                 {% elseif voting_platform_election.isResultPeriodActive %}
-                    <a href="{{ path('app_voting_platform_results', {uuid: voting_platform_election.uuid}) }}"
-                       id="committee-toggle-candidacy"
-                       class="btn btn--pink btn--no-wrap"
-                    >Voir les résultats</a>
+                    <p>
+                        Consulter les <a href="{{ path('app_voting_platform_results', {uuid: voting_platform_election.uuid}) }}" class="link--blue">résultats détaillés</a>
+                    </p>
+
+                    {% if voting_platform_election.hasResult %}
+                        {% set election_result = voting_platform_election.electionResult %}
+
+                        {% for electedPool in election_result.getElectedPools %}
+                            {{ dump(electedPool) }}
+                        {% endfor %}
+                    {% endif %}
                 {% endif %}
             {% endif %}
         {% endif %}

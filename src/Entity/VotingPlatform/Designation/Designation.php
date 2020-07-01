@@ -104,7 +104,7 @@ class Designation
      * @ORM\Column(type="smallint", options={"unsigned": true})
      *
      * @Assert\NotBlank
-     * @Assert\GreaterThan(0)
+     * @Assert\GreaterThanOrEqual(0)
      */
     private $lockPeriodThreshold = 3;
 

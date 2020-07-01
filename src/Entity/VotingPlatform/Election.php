@@ -6,6 +6,7 @@ use Algolia\AlgoliaSearchBundle\Mapping\Annotation as Algolia;
 use App\Entity\EntityDesignationTrait;
 use App\Entity\EntityIdentityTrait;
 use App\Entity\VotingPlatform\Designation\Designation;
+use App\Entity\VotingPlatform\ElectionResult\ElectionResult;
 use App\VotingPlatform\Election\ElectionStatusEnum;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -69,6 +70,13 @@ class Election
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $secondRoundEndDate;
+
+    /**
+     * @var ElectionResult|null
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\VotingPlatform\ElectionResult\ElectionResult", mappedBy="election")
+     */
+    private $electionResult;
 
     public function __construct(Designation $designation, UuidInterface $uuid = null, array $rounds = [])
     {
@@ -166,5 +174,15 @@ class Election
     public function isSecondRoundVotePeriodActive(): bool
     {
         return null !== $this->secondRoundEndDate && (new \DateTime()) <= $this->secondRoundEndDate;
+    }
+
+    public function getElectionResult(): ?ElectionResult
+    {
+        return $this->electionResult;
+    }
+
+    public function hasResult(): bool
+    {
+        return null !== $this->electionResult;
     }
 }
