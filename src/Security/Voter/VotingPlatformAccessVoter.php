@@ -24,10 +24,14 @@ class VotingPlatformAccessVoter extends AbstractAdherentVoter
     {
         /** @var Election $subject */
         if (!$subject->isVotePeriodActive()) {
+            dd($subject);
+
             return false;
         }
 
         $adherentIsInVotersList = $this->voterRepository->existsForElection($adherent, $subject->getUuid()->toString());
+
+        dump($adherentIsInVotersList);
 
         if (!$adherentIsInVotersList) {
             return false;

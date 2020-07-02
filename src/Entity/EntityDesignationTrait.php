@@ -83,11 +83,11 @@ trait EntityDesignationTrait
     {
         $now = new \DateTime();
 
-        return $this->designation
+        return dump($this->designation)
             && $this->getVoteEndDate() <= $now
-            && $now < (clone $this->getVoteEndDate())->modify(
+            && $now < dump((clone $this->getVoteEndDate())->modify(
                 sprintf('+%d days', $this->designation->getResultDisplayDelay())
-            )
+            ))
         ;
     }
 

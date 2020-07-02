@@ -107,4 +107,31 @@ class ElectionRoundResult
             $poolResult->sync();
         }
     }
+
+    public function isFullyElected(): bool
+    {
+        foreach ($this->electionPoolResults as $poolResult) {
+            if (!$poolResult->isElected()) {
+                return false;
+            }
+        }
+
+        return !$this->electionPoolResults->isEmpty();
+    }
+
+    /**
+     * @return ElectionPool[]
+     */
+    public function getNotElectedPools(): array
+    {
+        $pools = [];
+
+        foreach ($this->electionPoolResults as $electionPoolResult) {
+            if (!$electionPoolResult->isElected()) {
+                $pools[] = $electionPoolResult->getElectionPool();
+            }
+        }
+
+        return $pools;
+    }
 }

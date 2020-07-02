@@ -9,7 +9,6 @@ use App\Entity\VotingPlatform\ElectionPool;
 use App\Entity\VotingPlatform\VoteChoice;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
@@ -150,7 +149,7 @@ class ElectionPoolResult
             }
         }
 
-        $this->isElected = $elected !== null;
+        $this->isElected = null !== $elected;
 
         if ($elected) {
             $this->isElected = true;

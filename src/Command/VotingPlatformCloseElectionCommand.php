@@ -9,9 +9,10 @@ use App\Entity\VotingPlatform\ElectionResult\ElectionPoolResult;
 use App\Entity\VotingPlatform\ElectionResult\ElectionResult;
 use App\Entity\VotingPlatform\ElectionResult\ElectionRoundResult;
 use App\Entity\VotingPlatform\ElectionRound;
+use App\Repository\CommitteeElectionRepository;
 use App\Repository\VotingPlatform\ElectionRepository;
 use App\Repository\VotingPlatform\VoteResultRepository;
-use App\VotingPlatform\VoteResult\VoteResultAggregator;
+use App\VotingPlatform\Designation\DesignationTypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -26,12 +27,12 @@ class VotingPlatformCloseElectionCommand extends Command
     private $io;
     /** @var ElectionRepository */
     private $electionRepository;
-    /** @var VoteResultAggregator */
-    private $resultAggregator;
     /** @var EntityManagerInterface */
     private $entityManager;
     /** @var VoteResultRepository */
     private $voteResultRepository;
+    /** @var CommitteeElectionRepository */
+    private $committeeElectionRepository;
 
     protected function configure()
     {
@@ -55,7 +56,7 @@ class VotingPlatformCloseElectionCommand extends Command
 
                 $this->io->progressAdvance();
             }
-exit;
+
             $this->entityManager->clear();
         }
 
@@ -66,31 +67,14 @@ exit;
     {
         // 1. compute election result
         $electionResult = $this->computeElectionResult($election);
-
-        // 2. close election OR start second round
-
         $this->entityManager->persist($electionResult);
 
-//        $candidatesGroupResults = $this->resultAggregator->getResults($election)['aggregated']['candidates'];
-//        $currentRound = $election->getCurrentRound();
-//
-//        $secondRoundPools = [];
-//
-//        foreach ($currentRound->getElectionPools() as $pool) {
-//            $winners = $this->findElected($pool->getCandidateGroups(), $candidatesGroupResults);
-//
-//            if (1 === \count($winners)) {
-//                current($winners)->setElected(true);
-//            } else {
-//                $secondRoundPools[] = $pool;
-//            }
-//        }
-//
-//        if (empty($secondRoundPools)) {
-//            $election->close();
-//        } else {
-//            $election->startSecondRound($secondRoundPools);
-//        }
+        // 2. close election OR start second round
+        if ($electionResult->isFullyElected($currentRound = $election->getCurrentRound())) {
+            $this->doElectionClose($election);
+        } else {
+            $election->startSecondRound($electionResult->findForSecondRoundPools($currentRound));
+        }
 
         $this->entityManager->flush();
     }
@@ -121,12 +105,6 @@ exit;
     }
 
     /** @required */
-    public function setResultAggregator(VoteResultAggregator $resultAggregator): void
-    {
-        $this->resultAggregator = $resultAggregator;
-    }
-
-    /** @required */
     public function setElectionRepository(ElectionRepository $electionRepository): void
     {
         $this->electionRepository = $electionRepository;
@@ -142,6 +120,12 @@ exit;
     public function setVoteResultRepository(VoteResultRepository $voteResultRepository): void
     {
         $this->voteResultRepository = $voteResultRepository;
+    }
+
+    /** @required */
+    public function setCommitteeElectionRepository(CommitteeElectionRepository $committeeElectionRepository): void
+    {
+        $this->committeeElectionRepository = $committeeElectionRepository;
     }
 
     private function computeElectionResult(Election $election): ElectionResult
@@ -183,5 +167,18 @@ exit;
         }
 
         return $electionRoundResult;
+    }
+
+    private function doElectionClose(Election $election): void
+    {
+        $election->close();
+
+        if (DesignationTypeEnum::COMMITTEE_ADHERENT === $election->getDesignationType()) {
+//            $committeeElection = $this->committeeElectionRepository->findForCommittee($election->getElectionEntity()->getCommittee());
+
+//            if ($committeeElection) {
+//                $committeeElection->archive();
+//            }
+        }
     }
 }

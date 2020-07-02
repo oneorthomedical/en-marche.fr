@@ -5,6 +5,7 @@ namespace App\Entity\VotingPlatform\ElectionResult;
 use Algolia\AlgoliaSearchBundle\Mapping\Annotation as Algolia;
 use App\Entity\EntityIdentityTrait;
 use App\Entity\VotingPlatform\Election;
+use App\Entity\VotingPlatform\ElectionPool;
 use App\Entity\VotingPlatform\ElectionRound;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -59,13 +60,18 @@ class ElectionResult
 
     public function alreadyFilledForRound(ElectionRound $electionRound): bool
     {
+        return null !== $this->findForElectionRound($electionRound);
+    }
+
+    public function findForElectionRound(ElectionRound $electionRound): ?ElectionRoundResult
+    {
         foreach ($this->electionRoundResults as $result) {
             if ($result->getElectionRound() === $electionRound) {
-                return true;
+                return $result;
             }
         }
 
-        return false;
+        return null;
     }
 
     public function addElectionRoundResult(ElectionRoundResult $result): void
@@ -74,5 +80,20 @@ class ElectionResult
             $result->setElectionResult($this);
             $this->electionRoundResults->add($result);
         }
+    }
+
+    public function isFullyElected(ElectionRound $electionRound): bool
+    {
+        $electionRoundResult = $this->findForElectionRound($electionRound);
+
+        return $electionRoundResult && $electionRoundResult->isFullyElected();
+    }
+
+    /**
+     * @return ElectionPool[]
+     */
+    public function findForSecondRoundPools(ElectionRound $electionRound): array
+    {
+        return $this->findForElectionRound($electionRound)->getNotElectedPools();
     }
 }

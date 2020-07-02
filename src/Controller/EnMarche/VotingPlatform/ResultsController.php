@@ -20,7 +20,7 @@ class ResultsController extends AbstractController
 
         return $this->renderElectionTemplate('voting_platform/results.html.twig', $election, [
             'candidate_groups' => $this->candidateGroupRepository->findForElectionRound($election->getCurrentRound()),
-            'results' => $resultAggregator->getResults($election),
+            'results' => dump($resultAggregator->getResults($election)),
             'pools' => $election->getCurrentRound()->getElectionPools(),
         ]);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Committee;
 use App\Entity\CommitteeElection;
 use App\Entity\VotingPlatform\Designation\Designation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -29,5 +30,10 @@ class CommitteeElectionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult()
         ;
+    }
+
+    public function findForCommittee(Committee $committee): ?CommitteeElection
+    {
+        return $this->findOneBy(['committee' => $committee]);
     }
 }
