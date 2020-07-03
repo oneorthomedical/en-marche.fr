@@ -212,4 +212,21 @@ class Designation
     {
         $this->lockPeriodThreshold = $lockPeriodThreshold;
     }
+
+    public function isActive(): bool
+    {
+        $now = new \DateTime();
+
+        return $this->getCandidacyStartDate() <= $now
+            && ($now < $this->getVoteEndDate() || $this->isResultPeriodActive());
+    }
+
+    public function isResultPeriodActive(): bool
+    {
+        $now = new \DateTime();
+
+        return $this->getVoteEndDate() <= $now
+            && $now < (clone $this->getVoteEndDate())->modify(sprintf('+%d days', $this->getResultDisplayDelay()))
+        ;
+    }
 }

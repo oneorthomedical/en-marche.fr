@@ -22,19 +22,10 @@ class CommitteeElection
     /**
      * @var Committee
      *
-     * @ORM\OneToOne(targetEntity="Committee", inversedBy="committeeElection")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Committee", inversedBy="committeeElections")
      * @ORM\JoinColumn(onDelete="CASCADE")
      */
     private $committee;
-
-    /**
-     * Archive committee ID after the end of the election
-     *
-     * @var int
-     *
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $archivedCommitteeId;
 
     public function __construct(Designation $designation = null)
     {
@@ -54,11 +45,5 @@ class CommitteeElection
     public function setCommittee(Committee $committee): void
     {
         $this->committee = $committee;
-    }
-
-    public function archive(): void
-    {
-        $this->archivedCommitteeId = $this->committee->getId();
-        $this->committee = null;
     }
 }
