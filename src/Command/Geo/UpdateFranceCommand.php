@@ -109,10 +109,11 @@ final class UpdateFranceCommand extends Command
             return 0;
         }
 
-        foreach ($this->entities as $entity) {
-            $this->em->persist($entity);
-        }
-        $this->em->flush();
+        $this->em->transactional(function (EntityManagerInterface $em) {
+            foreach ($this->entities as $entity) {
+                $em->persist($entity);
+            }
+        });
 
         $this->io->success('Done');
 
