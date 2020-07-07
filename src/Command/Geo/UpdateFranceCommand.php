@@ -211,7 +211,7 @@ final class UpdateFranceCommand extends Command
 
         /* @var Collection|Region[] $newRegions */
         $newRegions = $this->entities->filter(static function ($entity) {
-            return $entity instanceof Region && !$entity->getCreatedAt();
+            return $entity instanceof Region && !$entity->getId();
         });
 
         $this->io->note(sprintf('%d new regions', $newRegions->count()));
@@ -223,7 +223,7 @@ final class UpdateFranceCommand extends Command
 
         /* @var Collection|Department[] $newDepartments */
         $newDepartments = $this->entities->filter(static function ($entity) {
-            return $entity instanceof Department && !$entity->getCreatedAt();
+            return $entity instanceof Department && !$entity->getId();
         });
 
         $this->io->note(sprintf('%d new departments', $newDepartments->count()));
@@ -235,7 +235,7 @@ final class UpdateFranceCommand extends Command
 
         /* @var Collection|City[] $newCities */
         $newCities = $this->entities->filter(static function ($entity) {
-            return $entity instanceof City && !$entity->getCreatedAt();
+            return $entity instanceof City && !$entity->getId();
         });
 
         $this->io->note(sprintf('%d new cities', $newCities->count()));
