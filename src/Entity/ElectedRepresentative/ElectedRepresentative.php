@@ -648,4 +648,19 @@ class ElectedRepresentative
     {
         return sprintf('%s %s', $this->firstName, $this->lastName);
     }
+
+    public function getActiveReferentTagCodes(): array
+    {
+        $tags = [];
+
+        foreach ($this->getCurrentMandates() as $mandate) {
+            if (!$zone = $mandate->getZone()) {
+                continue;
+            }
+
+            $tags = array_merge($tags, $zone->getReferentTagsCodes());
+        }
+
+        return array_unique($tags);
+    }
 }
