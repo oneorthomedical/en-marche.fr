@@ -3,7 +3,7 @@
 namespace App\Controller\EnMarche\VotingPlatform;
 
 use App\Entity\VotingPlatform\Election;
-use App\VotingPlatform\VoteResult\VoteResultAggregator;
+use App\Repository\VotingPlatform\VoteResultRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -12,16 +12,14 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ResultsController extends AbstractController
 {
-    public function __invoke(VoteResultAggregator $resultAggregator, Election $election): Response
+    public function __invoke(VoteResultRepository $voteResultRepository, Election $election): Response
     {
         if (!$election->isResultPeriodActive()) {
             return $this->redirect($this->redirectManager->getRedirection($election));
         }
 
         return $this->renderElectionTemplate('voting_platform/results.html.twig', $election, [
-            'candidate_groups' => $this->candidateGroupRepository->findForElectionRound($election->getCurrentRound()),
-            'results' => $resultAggregator->getResults($election),
-            'pools' => $election->getCurrentRound()->getElectionPools(),
+            'vote_results' => $voteResultRepository->getResultsForElection($election),
         ]);
     }
 }

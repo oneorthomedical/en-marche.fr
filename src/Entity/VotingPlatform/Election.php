@@ -7,6 +7,7 @@ use App\Entity\EntityDesignationTrait;
 use App\Entity\EntityIdentityTrait;
 use App\Entity\EntityTimestampableTrait;
 use App\Entity\VotingPlatform\Designation\Designation;
+use App\Entity\VotingPlatform\ElectionResult\ElectionResult;
 use App\VotingPlatform\Election\ElectionStatusEnum;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -71,6 +72,13 @@ class Election
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $secondRoundEndDate;
+
+    /**
+     * @var ElectionResult|null
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\VotingPlatform\ElectionResult\ElectionResult", mappedBy="election")
+     */
+    private $electionResult;
 
     public function __construct(Designation $designation, UuidInterface $uuid = null, array $rounds = [])
     {
@@ -173,5 +181,37 @@ class Election
     public function getSecondRoundEndDate(): ?\DateTime
     {
         return $this->secondRoundEndDate;
+    }
+
+    public function getElectionResult(): ?ElectionResult
+    {
+        return $this->electionResult;
+    }
+
+    public function setElectionResult(?ElectionResult $electionResult): void
+    {
+        $this->electionResult = $electionResult;
+    }
+
+    public function hasResult(): bool
+    {
+        return null !== $this->electionResult;
+    }
+
+    public function canClose(): bool
+    {
+        $now = new \DateTime();
+
+        if ($secondDate = $this->getSecondRoundEndDate()) {
+            return $secondDate < $now;
+        }
+
+        if (!$this->electionResult) {
+            return false;
+        }
+
+        $roundResult = $this->electionResult->getElectionRoundResult($this->getCurrentRound());
+
+        return $roundResult && $roundResult->hasOnlyElectedPool();
     }
 }

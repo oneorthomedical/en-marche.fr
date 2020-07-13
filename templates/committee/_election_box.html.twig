@@ -110,7 +110,7 @@
             {% if voting_platform_election %}
                 {% if voting_platform_election.isVotePeriodActive %}
                     {% if is_granted('ABLE_TO_VOTE', voting_platform_election) %}
-                        <div class="em-countdown-clock" data-event-timestamp="{{ committee_election.voteEndDate.timestamp }}" data-now-timestamp="{{ date().timestamp }}">
+                        <div class="em-countdown-clock" data-event-timestamp="{{ voting_platform_election.realVoteEndDate.timestamp }}" data-now-timestamp="{{ date().timestamp }}">
                             <span class="text--dark text--small">Il vous reste</span>
                             <span class="clock-container"></span>
                             <span class="text--dark text--small">pour participer à la désignation.</span>
@@ -128,7 +128,7 @@
                         {% if my_vote %}
                             <p class="text--dark text--small committee__elections-box--text">Votre choix a bien été enregistré.</p>
 
-                            <div class="em-countdown-clock" data-event-timestamp="{{ voting_platform_election.voteEndDate.timestamp }}" data-now-timestamp="{{ date().timestamp }}">
+                            <div class="em-countdown-clock" data-event-timestamp="{{ voting_platform_election.realVoteEndDate.timestamp }}" data-now-timestamp="{{ date().timestamp }}">
                                 <span class="text--dark text--small">Les résultats seront publiés dans :</span>
                                 <span class="clock-container"></span>
                             </div>

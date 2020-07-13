@@ -4,10 +4,10 @@ namespace App\Controller\EnMarche\Designation;
 
 use App\Entity\Committee;
 use App\Entity\VotingPlatform\Election;
-use App\Repository\VotingPlatform\CandidateGroupRepository;
+use App\Entity\VotingPlatform\ElectionResult\ElectionPoolResult;
 use App\Repository\VotingPlatform\ElectionRepository;
+use App\Repository\VotingPlatform\VoteResultRepository;
 use App\Repository\VotingPlatform\VoterRepository;
-use App\VotingPlatform\VoteResult\VoteResultAggregator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -69,27 +69,28 @@ abstract class AbstractDesignationController extends AbstractController
     /**
      * @Route("/{uuid}/resultats", name="_results", methods={"GET"})
      */
-    public function showResultsAction(
-        Request $request,
-        Committee $committee,
-        Election $election,
-        CandidateGroupRepository $candidateGroupRepository,
-        VoteResultAggregator $aggregator
-    ): Response {
+    public function showResultsAction(Request $request, Committee $committee, Election $election): Response
+    {
         if ($election->isVotePeriodActive()) {
             return $this->redirectToSpaceRoute('dashboard', $committee, $election);
         }
 
-        $candidateGroups = $candidateGroupRepository->findForElectionRound($election->getCurrentRound());
+        if (!$election->hasResult()) {
+            $this->addFlash('info', 'Les résultats ne sont pas encore prêts.');
+
+            return $this->redirectToSpaceRoute('dashboard', $committee, $election);
+        }
 
         return $this->renderTemplate('designation/results.html.twig', $request, [
             'committee' => $committee,
             'election' => $election,
             'election_stats' => $this->electionRepository->getSingleAggregatedData($election),
-            'candidate_groups' => $request->query->has('femme') ?
-                $candidateGroups->getWomanCandidateGroups() :
-                $candidateGroups->getManCandidateGroups(),
-            'results' => $election->isResultPeriodActive() ? $aggregator->getResults($election)['aggregated']['candidates'] : [],
+            'election_pool_result' => current(array_filter(
+                $election->getElectionResult()->getElectedPoolResults(),
+                function (ElectionPoolResult $poolResult) use ($request) {
+                    return $poolResult->getElectionPool()->getTitle() === ($request->query->has('femme') ? 'Femme' : 'Homme');
+                }
+            )),
         ]);
     }
 
@@ -100,7 +101,7 @@ abstract class AbstractDesignationController extends AbstractController
         Request $request,
         Committee $committee,
         Election $election,
-        VoteResultAggregator $aggregator
+        VoteResultRepository $voteResultRepository
     ): Response {
         if ($election->isVotePeriodActive()) {
             return $this->redirectToSpaceRoute('dashboard', $committee, $election);
@@ -110,7 +111,7 @@ abstract class AbstractDesignationController extends AbstractController
             'committee' => $committee,
             'election' => $election,
             'election_stats' => $this->electionRepository->getSingleAggregatedData($election),
-            'votes' => $aggregator->getResults($election)['vote_results'],
+            'votes' => $voteResultRepository->getResultsForElection($election),
         ]);
     }
 
