@@ -9,9 +9,7 @@
     "test": "node_modules/.bin/mocha-webpack --webpack-config webpack.development.js --recursive front/tests",
     "lint": "node_modules/.bin/esw webpack.* front/**/*.js",
     "lint:fix": "npm run lint -- --fix",
-    "lint:watch": "npm run lint -- --watch",
-    "snyk-protect": "snyk protect",
-    "prepare": "yarn run snyk-protect"
+    "lint:watch": "npm run lint -- --watch"
   },
   "dependencies": {
     "@babel/core": "^7.4.4",
@@ -31,7 +29,7 @@
     "cryptiles": "^4.1.2",
     "css-loader": "^2.1.1",
     "deep-extend": "^0.5.1",
-    "eslint": "^4.18.2",
+    "eslint": "^5.0.0",
     "eslint-config-airbnb": "^11.0.0",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-react": "^6.9.0",
@@ -42,12 +40,12 @@
     "growl": "1.10.5",
     "js-base64": "^2.1.9",
     "js-cookie": "^2.1.0",
-    "lodash": "^4.17.16",
+    "lodash": "^4.17.11",
     "mini-css-extract-plugin": "^0.6.0",
     "mocha": "7.1.1",
-    "mocha-webpack": "^1.0.0",
+    "mocha-webpack": "^0.7.0",
     "moment": "^2.24.0",
-    "node-sass": "^4.13.1",
+    "node-sass": "^4.12.0",
     "npm-run-all": "^3.1.2",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "randomatic": "^3.0.0",
@@ -67,8 +65,6 @@
     "terser-webpack-plugin": "^2.3.6",
     "webpack": "^4.31.0",
     "webpack-cli": "^3.3.2",
-    "webpack-merge": "^4.2.1",
-    "snyk": "^1.373.1"
-  },
-  "snyk": true
+    "webpack-merge": "^4.2.1"
+  }
 }
